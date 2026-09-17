@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resolution Desk — Customer-Facing Disruption Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --navy:#12213A; --navy-2:#1B3358; --paper:#F5F2EA; --panel:#FFFFFF;
+    --ink:#1C1F26; --ink-soft:#565B66; --amber:#D98A2B; --slate:#5C7A9C;
+    --escalate:#B0483C; --escalate-bg:#FBEAE7; --line:#DDD7C6;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;display:flex;min-height:100vh;}
+
+  .sidebar{width:300px;flex-shrink:0;background:var(--navy);color:#EDEBE2;padding:22px 18px 18px;display:flex;flex-direction:column;gap:18px;}
+  .brand{display:flex;flex-direction:column;gap:4px;border-bottom:1px solid rgba(255,255,255,0.14);padding-bottom:16px;}
+  .brand .mark{font-family:'Source Serif 4',serif;font-size:21px;font-weight:600;}
+  .brand .sub{font-size:12.5px;color:#B9C4D4;}
+  .board-date{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--amber);margin-top:2px;}
+
+  .cust-list{display:flex;flex-direction:column;gap:8px;}
+  .cust-card{background:var(--navy-2);border:1px solid rgba(255,255,255,0.08);border-radius:3px;padding:11px 12px;cursor:pointer;transition:background .15s ease, border-color .15s ease;}
+  .cust-card:hover{background:#234070;}
+  .cust-card.active{border-color:var(--amber);background:#234070;}
+  .cust-card .row1{display:flex;justify-content:space-between;align-items:baseline;}
+  .cust-card .name{font-weight:600;font-size:14px;}
+  .cust-card .tier{font-size:10px;letter-spacing:.3px;padding:2px 6px;border-radius:2px;font-family:'IBM Plex Mono',monospace;}
+  .tier-gold{background:#3E3620;color:#E6C77A;} .tier-silver{background:#33363D;color:#C9CDD6;} .tier-platinum{background:#302644;color:#CDB5F0;}
+  .cust-card .flight-line{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#AEB9C9;margin-top:6px;}
+  .cust-card .status-line{font-size:11.5px;margin-top:4px;color:#DED7C2;}
+  .status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;position:relative;top:-1px;}
+  .dot-cancel{background:#D9776A;} .dot-delay{background:var(--amber);}
+
+  .ref-toggle{margin-top:auto;background:transparent;border:1px solid rgba(255,255,255,0.18);color:#D9D3C1;font-size:12.5px;padding:9px 10px;border-radius:3px;cursor:pointer;text-align:left;}
+  .ref-toggle:hover{border-color:var(--amber);color:var(--amber);}
+
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:380px;background:var(--panel);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .25s ease;z-index:20;overflow-y:auto;padding:22px 22px 40px;font-size:13px;line-height:1.55;}
+  .drawer.open{transform:translateX(0);}
+  .drawer h3{font-family:'Source Serif 4',serif;font-size:17px;margin:18px 0 6px;color:var(--navy);}
+  .drawer h3:first-child{margin-top:0;}
+  .drawer .close-x{position:absolute;top:16px;right:18px;background:none;border:none;cursor:pointer;font-size:18px;color:var(--ink-soft);}
+  .drawer ul{margin:4px 0 0 18px;padding:0;} .drawer li{margin-bottom:6px;}
+  .scrim{position:fixed;inset:0;background:rgba(18,33,58,0.35);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:15;}
+  .scrim.open{opacity:1;pointer-events:auto;}
+
+  .main{flex:1;display:flex;flex-direction:column;max-width:820px;margin:0 auto;width:100%;}
+  .thread-header{padding:22px 32px 14px;border-bottom:1px solid var(--line);}
+  .thread-header .cname{font-family:'Source Serif 4',serif;font-size:22px;font-weight:600;}
+  .thread-header .cmeta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);margin-top:4px;}
+
+  .thread{flex:1;overflow-y:auto;padding:22px 32px;display:flex;flex-direction:column;gap:14px;}
+  .msg{max-width:78%;padding:11px 14px;border-radius:4px;font-size:14.5px;line-height:1.5;white-space:pre-wrap;}
+  .msg.customer{align-self:flex-end;background:var(--navy);color:#F2EFE6;border-bottom-right-radius:2px;}
+  .msg.agent{align-self:flex-start;background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:2px;}
+  .msg .label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.3px;margin-bottom:4px;opacity:.65;}
+  .msg.thinking{align-self:flex-start;color:var(--ink-soft);font-style:italic;font-size:13px;background:none;border:none;padding:0 14px;}
+  .escalate-banner{align-self:flex-start;max-width:78%;background:var(--escalate-bg);border:1px solid #E3B8AF;color:var(--escalate);padding:10px 13px;border-radius:4px;font-size:13px;display:flex;gap:8px;align-items:flex-start;}
+
+  .composer{border-top:1px solid var(--line);padding:14px 32px 20px;background:var(--paper);}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+  .chip{background:var(--panel);border:1px solid var(--line);color:var(--ink);font-size:12.5px;padding:6px 10px;border-radius:14px;cursor:pointer;max-width:100%;text-align:left;}
+  .chip:hover{border-color:var(--slate);color:var(--slate);}
+  .input-row{display:flex;gap:10px;}
+  .input-row textarea{flex:1;resize:none;border:1px solid var(--line);border-radius:4px;padding:11px 13px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;background:var(--panel);height:44px;}
+  .input-row textarea:focus{outline:2px solid var(--slate);outline-offset:-1px;}
+  .input-row button{background:var(--navy);color:#F2EFE6;border:none;border-radius:4px;padding:0 20px;font-size:13.5px;font-weight:500;cursor:pointer;}
+  .input-row button:disabled{opacity:.5;cursor:default;}
+  .input-row button:not(:disabled):hover{background:var(--navy-2);}
+
+  .empty-state{margin:auto;text-align:center;color:var(--ink-soft);padding:60px 20px;}
+  .empty-state .mark{font-family:'Source Serif 4',serif;font-size:20px;color:var(--navy);}
+  .banner-err{background:var(--escalate-bg);color:var(--escalate);padding:10px 14px;font-size:13px;border-bottom:1px solid #E3B8AF;}
+
+  @media (max-width:760px){ body{flex-direction:column;} .sidebar{width:100%;} .main{max-width:100%;} .drawer{width:88%;} }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="brand">
+    <div class="mark">Resolution Desk</div>
+    <div class="sub">Customer-facing disruption agent — SkyKarnata Air</div>
+    <div class="board-date" id="boardDate">OPS BOARD</div>
+  </div>
+  <div class="cust-list" id="custList"><div style="color:#B9C4D4;font-size:13px;">Loading cases…</div></div>
+  <button class="ref-toggle" id="refToggle">View policy reference →</button>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="drawer" id="drawer">
+  <button class="close-x" id="closeDrawer">✕</button>
+  <div id="drawerBody">Loading…</div>
+</div>
+
+<div class="main">
+  <div id="apiWarning"></div>
+  <div id="threadHeader" class="thread-header" style="display:none;">
+    <div class="cname" id="hName"></div>
+    <div class="cmeta" id="hMeta"></div>
+  </div>
+  <div class="thread" id="thread">
+    <div class="empty-state">
+      <div class="mark">Select a customer to open their case</div>
+      <div style="margin-top:8px;font-size:13.5px;">Each case loads with the customer's real message from today's disruption. Reply as the agent would, or use a suggested follow-up to test an edge case.</div>
+    </div>
+  </div>
+  <div class="composer" id="composer" style="display:none;">
+    <div class="chips" id="chips"></div>
+    <div class="input-row">
+      <textarea id="input" placeholder="Type the customer's next message…"></textarea>
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let CUSTOMERS = [];
+let activeCustomer = null;
+let histories = {};
+let sending = false;
+
+const custListEl = document.getElementById('custList');
+const threadEl = document.getElementById('thread');
+const threadHeaderEl = document.getElementById('threadHeader');
+const composerEl = document.getElementById('composer');
+const chipsEl = document.getElementById('chips');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+
+function getCustomer(id){ return CUSTOMERS.find(c=>c.id===id); }
+
+async function boot(){
+  try{
+    const res = await fetch('/api/customers');
+    const data = await res.json();
+    CUSTOMERS = data.customers;
+    document.getElementById('boardDate').textContent = data.exerciseDate.toUpperCase() + ' · OPS BOARD';
+    renderCustList();
+  }catch(e){
+    custListEl.innerHTML = '<div style="color:#E6A399;font-size:13px;">Could not reach the server. Is it running?</div>';
+  }
+  try{
+    const pres = await fetch('/api/policy');
+    const pdata = await pres.json();
+    renderDrawer(pdata);
+  }catch(e){}
+}
+
+function renderDrawer(p){
+  const body = document.getElementById('drawerBody');
+  body.innerHTML = `
+    <h3>Service rules</h3>
+    <ul>${p.rules.map(r=>`<li>${r}</li>`).join('')}</ul>
+    <h3>Agent may do</h3>
+    <ul>${p.allowed.map(r=>`<li>${r}</li>`).join('')}</ul>
+    <h3>Must escalate</h3>
+    <ul>${p.mustEscalate.map(r=>`<li>${r}</li>`).join('')}</ul>
+  `;
+}
+
+function renderCustList(){
+  custListEl.innerHTML = '';
+  CUSTOMERS.forEach(c=>{
+    const card = document.createElement('div');
+    card.className = 'cust-card' + (activeCustomer===c.id ? ' active':'');
+    const tierClass = c.tier==='Gold'?'tier-gold':(c.tier==='Platinum'?'tier-platinum':'tier-silver');
+    const dotClass = c.statusKind==='cancel' ? 'dot-cancel' : 'dot-delay';
+    card.innerHTML = `
+      <div class="row1"><span class="name">${c.name}</span><span class="tier ${tierClass}">${c.tier.toUpperCase()}</span></div>
+      <div class="flight-line">${c.flightLine}</div>
+      <div class="status-line"><span class="status-dot ${dotClass}"></span>${c.statusLine}</div>`;
+    card.onclick = ()=>selectCustomer(c.id);
+    custListEl.appendChild(card);
+  });
+}
+
+function selectCustomer(id){
+  activeCustomer = id;
+  const c = getCustomer(id);
+  renderCustList();
+  threadHeaderEl.style.display = 'block';
+  composerEl.style.display = 'block';
+  document.getElementById('hName').textContent = `${c.name} · ${c.pnr}`;
+  document.getElementById('hMeta').textContent = `${c.flightLine}  —  ${c.statusLine}`;
+
+  if(!histories[id]){
+    histories[id] = [];
+    threadEl.innerHTML = '';
+    renderChips(c);
+    pushMessage('customer', c.opening, false);
+    histories[id].push({role:'user', content:c.opening});
+    callAgent(id);
+  } else {
+    threadEl.innerHTML = '';
+    histories[id].forEach(m=>{
+      if(m.role==='user') pushMessage('customer', m.content, false);
+      else { const parsed = safeParse(m.content); if(parsed) renderAgentTurn(parsed, false); }
+    });
+    renderChips(c);
+  }
+}
+
+function renderChips(c){
+  chipsEl.innerHTML = '';
+  c.chips.forEach(text=>{
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = text.length > 90 ? text.slice(0,88)+'…' : text;
+    chip.title = text;
+    chip.onclick = ()=>{ if(!sending){ sendCustomerMessage(text); chip.remove(); } };
+    chipsEl.appendChild(chip);
+  });
+}
+
+function pushMessage(role, text, scroll=true){
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role==='customer'?'customer':'agent');
+  const label = document.createElement('span');
+  label.className='label';
+  label.textContent = role==='customer' ? getCustomer(activeCustomer).name.toUpperCase() : 'RESOLUTION DESK';
+  div.appendChild(label);
+  div.appendChild(document.createTextNode(text));
+  threadEl.appendChild(div);
+  if(scroll) threadEl.scrollTop = threadEl.scrollHeight;
+  return div;
+}
+
+function renderAgentTurn(parsed, scroll=true){
+  pushMessage('agent', parsed.reply, scroll);
+  if(parsed.escalate){
+    const banner = document.createElement('div');
+    banner.className = 'escalate-banner';
+    banner.innerHTML = `<span>⚠</span><span><strong>Escalated to a human specialist.</strong>${parsed.reason ? ' '+parsed.reason : ''}</span>`;
+    threadEl.appendChild(banner);
+  }
+  if(scroll) threadEl.scrollTop = threadEl.scrollHeight;
+}
+
+function safeParse(raw){
+  try{
+    let t = raw.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+    return JSON.parse(t);
+  }catch(e){ return null; }
+}
+
+function showThinking(){
+  const div = document.createElement('div');
+  div.className = 'msg thinking'; div.id = 'thinkingBubble';
+  div.textContent = 'Resolution desk is reviewing the case…';
+  threadEl.appendChild(div); threadEl.scrollTop = threadEl.scrollHeight;
+}
+function hideThinking(){ const el = document.getElementById('thinkingBubble'); if(el) el.remove(); }
+
+async function callAgent(id){
+  sending = true; sendBtn.disabled = true; showThinking();
+  try{
+    const res = await fetch('/api/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ customerId:id, messages: histories[id] })
+    });
+    const parsed = await res.json();
+    hideThinking();
+    if(!res.ok){
+      pushMessage('agent', parsed.error && parsed.error.detail ? parsed.error.detail : (typeof parsed.error === 'string' ? parsed.error : 'The agent hit a server error.'));
+    } else {
+      histories[id].push({role:'assistant', content: JSON.stringify(parsed)});
+      renderAgentTurn(parsed);
+    }
+  }catch(err){
+    hideThinking();
+    pushMessage('agent', "Couldn't reach the resolution server. Please try again.");
+  }
+  sending = false; sendBtn.disabled = false;
+}
+
+function sendCustomerMessage(text){
+  if(!text.trim() || !activeCustomer || sending) return;
+  pushMessage('customer', text);
+  histories[activeCustomer].push({role:'user', content:text});
+  callAgent(activeCustomer);
+}
+
+sendBtn.onclick = ()=>{ const text = inputEl.value; inputEl.value=''; sendCustomerMessage(text); };
+inputEl.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendBtn.click(); } });
+
+const drawer = document.getElementById('drawer');
+const scrim = document.getElementById('scrim');
+document.getElementById('refToggle').onclick = ()=>{ drawer.classList.add('open'); scrim.classList.add('open'); };
+document.getElementById('closeDrawer').onclick = ()=>{ drawer.classList.remove('open'); scrim.classList.remove('open'); };
+scrim.onclick = ()=>{ drawer.classList.remove('open'); scrim.classList.remove('open'); };
+
+boot();
+</script>
+</body>
+</html>

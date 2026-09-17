@@ -1,0 +1,70 @@
+{
+  "exerciseDate": "Wednesday, 23 September 2026",
+  "rules": [
+    "Cancellation rebooking: if a flight is cancelled by the airline, the customer gets a free rebooking on the next available flight within 24 hours, OR a full refund — customer's choice.",
+    "Delay compensation: delay under 3h → ₹500 meal voucher. Delay over 3h → meal voucher + lounge access. Delay over 5h → meal voucher + lounge access + hotel accommodation covering ONLY the delayed hours, not a full night's stay.",
+    "Refunds: processed in full within 7 business days, to the ORIGINAL payment method only.",
+    "Fare difference: if a customer voluntarily rebooks onto a higher-fare flight (not airline-caused), they must pay the fare difference. Agents cannot waive a fare difference above ₹1,500 without supervisor approval.",
+    "Loyalty tiers: Gold and Platinum get priority rebooking (first access to next-available seats) but NO additional compensation beyond standard policy."
+  ],
+  "allowed": [
+    "Rebook on the next available flight within 24h at no charge (airline-caused disruption)",
+    "Issue meal vouchers and lounge access per the delay rule",
+    "Arrange hotel for the delayed-hours portion only, where it qualifies",
+    "Initiate a refund for airline-caused cancellations",
+    "Share the customer's own booking/flight status information"
+  ],
+  "mustEscalate": [
+    "Any compensation beyond the stated policy amounts",
+    "Waiving a fare difference above ₹1,500",
+    "Making exceptions for non-airline-caused disruptions (e.g. customer missed the flight)",
+    "Threats of legal action or formal complaints — escalate immediately",
+    "Processing a refund to a different payment method than the original"
+  ],
+  "toneReference": [
+    "I completely understand the frustration — I can see flight SK-190 was cancelled due to operational reasons. I can rebook you on the next available flight at no extra cost, or process a full refund. Which would you prefer?",
+    "I'm sorry for the disruption. Your flight was delayed 3 hours 40 minutes, which qualifies for a meal voucher and lounge access under our policy. I've applied both to your account now.",
+    "I hear you, and I'm sorry this has been such a frustrating experience. I want to make sure this gets the right attention — I'm escalating this to our specialist support team right now, and they'll reach out to you directly."
+  ],
+  "customers": [
+    {
+      "id": "priya",
+      "name": "Priya Nair",
+      "tier": "Gold",
+      "pnr": "SK4821X",
+      "history": "6 flights in the last 12 months, 1 prior complaint (delayed baggage, resolved with a voucher)",
+      "flightLine": "SK-204 · Delhi → Goa · 23 Sep 18:40",
+      "statusLine": "Cancelled (operational reasons)",
+      "statusKind": "cancel",
+      "booking": "- SK-204, Delhi → Goa, Wed 23 Sep 2026, scheduled departure 18:40: CANCELLED (operational reasons).\n- Return flight, Goa → Delhi, Fri 25 Sep 2026, scheduled departure 16:20: unaffected.",
+      "opening": "Hi, I just found out my flight SK-204 from Delhi to Goa today got cancelled! What are my options?",
+      "chips": ["I'm furious about this. I want a full cash refund AND a free upgrade to business class on my return flight for the trouble."]
+    },
+    {
+      "id": "arvind",
+      "name": "Arvind Kulkarni",
+      "tier": "Silver",
+      "pnr": "TR1190B",
+      "history": "3 flights in the last 12 months, no prior complaints",
+      "flightLine": "SK-118 · Mumbai → Bengaluru · 23 Sep 07:10",
+      "statusLine": "Delayed 4h (new departure 11:10)",
+      "statusKind": "delay",
+      "booking": "- SK-118, Mumbai → Bengaluru, Wed 23 Sep 2026, originally scheduled 07:10: DELAYED 4 hours, new departure 11:10.",
+      "opening": "My flight SK-118 from Mumbai to Bengaluru is delayed. What's happening?",
+      "chips": ["I'm really frustrated — I'm going to miss an important connecting meeting. Can you arrange hotel accommodation since it's been such a long delay?"]
+    },
+    {
+      "id": "meher",
+      "name": "Meher Kaur",
+      "tier": "Platinum",
+      "pnr": "WL7742",
+      "history": "10 flights in the last 12 months, 1 prior complaint (overbooking, resolved with a tier-status upgrade)",
+      "flightLine": "SK-305 · Delhi → Hyderabad · 23 Sep 14:00",
+      "statusLine": "Delayed 6h (new departure 20:00)",
+      "statusKind": "delay",
+      "booking": "- SK-305, Delhi → Hyderabad, Wed 23 Sep 2026, originally scheduled 14:00: DELAYED 6 hours, new departure 20:00.",
+      "opening": "My flight SK-305 to Hyderabad has been delayed by 6 hours. What can you do for me?",
+      "chips": ["I'd like a full night's hotel stay, not just the delayed hours. Also, please move me onto a different, higher-fare flight instead of waiting — the fare difference is ₹2,000 and I'm fine paying it."]
+    }
+  ]
+}
